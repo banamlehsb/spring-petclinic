@@ -1,0 +1,21 @@
+FROM amazoncorretto:21-alpine
+
+WORKDIR /app
+
+COPY gradlew gradlew.bat build.gradle settings.gradle ./
+COPY gradle ./gradle
+
+RUN chmod +x gradlew
+
+COPY src ./src
+
+RUN ./gradlew build --no-daemon -x test
+
+RUN ./gradlew bootJar --no-daemon
+
+EXPOSE 8011
+
+ENV JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+EXPOSE 5005
+
+CMD ["sh", "-c", "java -jar -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:default} build/libs/spring-petclinic-3.3.0.jar"]
