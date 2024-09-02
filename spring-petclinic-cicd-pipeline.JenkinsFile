@@ -28,17 +28,15 @@ pipeline {
                     
                     // Perform a health check
                     sleep 20 // Wait for the application to start
-                    timeout(time: 30, unit: 'SECONDS') {
-                        waitUntil {
-                            script {
-                                def healthCheck = sh(script: 'curl -s http://localhost:8011/actuator/health', returnStdout: true).trim()
-                                return healthCheck.contains('UP')
-                            }
+                    script {
+                        def healthCheck = sh(script: 'curl -s http://localhost:8011/actuator/health', returnStdout: true).trim()
+                        if (healthCheck.contains('UP')) {
+                            // Stop and remove the container
+                            sh 'docker-compose down'
+                        } else {
+                            error('Health check failed. Exiting...')
                         }
                     }
-                    
-                    // Stop and remove the container
-                    sh 'docker-compose down'
                 }
             }
         }
