@@ -35,8 +35,10 @@ pipeline {
                     sleep 20 // Wait for the application to start
                     script {
                         def healthCheck = sh(script: 'curl -s http://localhost:8011/actuator/health', returnStdout: true).trim()
+                        echo "Health check response: ${healthCheck}"
                         if (healthCheck.contains('UP')) {
                             echo "Health check passed."
+                            // Stop and remove the container
                             sh 'docker-compose down'
                         } else {
                             echo "Health check failed. Exiting..."
@@ -48,6 +50,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
+                echo "Deploying application..."
                 sh 'docker-compose up -d'
             }
         }
