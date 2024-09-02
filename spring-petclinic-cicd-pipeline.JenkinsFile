@@ -10,12 +10,14 @@ pipeline {
         }
         stage('Test') {
             steps {
+                echo "Running tests..."
                 sh './gradlew clean test'
             }
         }
         stage('Build Image') {
             steps {
                 script {
+                    echo "Building Docker image..."
                     docker.build("spring-petclinic:latest", "-f Dockerfile-build .")
                 }
             }
@@ -23,6 +25,7 @@ pipeline {
         stage('Verify Image') {
             steps {
                 script {
+                    echo "Verifying Docker image..."
                     sh 'docker-compose down'
                     sleep 5
                     // Run the Docker image
@@ -33,9 +36,10 @@ pipeline {
                     script {
                         def healthCheck = sh(script: 'curl -s http://localhost:8011/actuator/health', returnStdout: true).trim()
                         if (healthCheck.contains('UP')) {
-                            // Stop and remove the container
+                            echo "Health check passed."
                             sh 'docker-compose down'
                         } else {
+                            echo "Health check failed. Exiting..."
                             error('Health check failed. Exiting...')
                         }
                     }
@@ -46,6 +50,21 @@ pipeline {
             steps {
                 sh 'docker-compose up -d'
             }
+        }
+    }
+    post {
+        always {
+            echo "Cleaning up..."
+            // Stash Gradle cache after the build
+            script {
+                stash includes: '.gradle/**', name: 'gradle-cache'
+            }
+        }
+        failure {
+            echo "Pipeline failed."
+        }
+        success {
+            echo "Pipeline succeeded."
         }
     }
 }
