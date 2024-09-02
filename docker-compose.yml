@@ -1,8 +1,5 @@
 services:
   service:
-    build:
-      context: .
-      dockerfile: Dockerfile-build
     image: spring-petclinic
     container_name: spring-petclinic
     ports:
