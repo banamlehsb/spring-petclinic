@@ -23,6 +23,8 @@ pipeline {
         stage('Verify Image') {
             steps {
                 script {
+                    sh 'docker-compose down'
+                    sleep 5
                     // Run the Docker image
                     sh 'docker-compose up -d'
                     
