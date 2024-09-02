@@ -34,7 +34,8 @@ pipeline {
                     // Perform a health check
                     sleep 20 // Wait for the application to start
                     script {
-                        def healthCheck = sh(script: 'curl -s http://localhost:8011/actuator/health', returnStdout: true).trim()
+                        def response = httpRequest(url: 'http://localhost:8011/actuator/health', validResponseCodes: '200')
+                        def healthCheck = response.content.trim()
                         echo "Health check response: ${healthCheck}"
                         if (healthCheck.contains('UP')) {
                             echo "Health check passed."
@@ -42,6 +43,8 @@ pipeline {
                             sh 'docker-compose down'
                         } else {
                             echo "Health check failed. Exiting..."
+                            // Print Docker container logs for debugging
+                            sh 'docker-compose logs'
                             error('Health check failed. Exiting...')
                         }
                     }
